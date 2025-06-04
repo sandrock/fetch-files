@@ -1,0 +1,17 @@
+{
+  "__manifest": "FetchFilesConfiguration",
+  "Units": {
+    "local-myservice": {
+      "Type": "Local",
+      "Description": "on local computer, myservice produces backup files",
+      "Location": "/tmp/fetchfiles-test/myservice",
+      "FileFormat": "myservice_(?<id>[0-9T-]+)_(?:.+)"
+    }
+  },
+  "Stores": {
+    "local": {
+      "Type": "Local",
+      "Location": "/tmp/fetchfiles-test/store1"
+    }
+  }
+}
