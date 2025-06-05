@@ -41,13 +41,17 @@ public sealed class UnitListFilesCommand(FetchFilesContext context) : ICommand
             throw new InvalidOperationException($"Unit type {unitConfig.Type} not supported");
         }
 
-        var provider = this.context.UnitTypes[unitConfig.Type](unitConfig);
+        await using var provider = this.context.UnitTypes[unitConfig.Type](unitConfig);
         await provider.Initialize();
-        
+
         await foreach (var file in provider.ListFiles())
         {
             Console.Out.WriteLine(file);
         }
+    }
 
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 }
