@@ -16,10 +16,14 @@ context.StoreTypes.Add("Local", u => new LocalStoreProvider(u));
 var parser = new ParseArgs(args);
 string arg;
 var errors = new List<string>();
-ICommand? command = null;
+ICommand? command = null, helpCommand = null;
 while (parser.MoveNext())
 {
-    if (parser.Is(arg = "--config", "-c"))
+    if (parser.Is(arg = "--help", "-h"))
+    {
+        helpCommand = new ShowUsage(context);
+    }
+    else if (parser.Is(arg = "--config", "-c"))
     {
         if (parser.Has(1))
         {
@@ -77,6 +81,6 @@ if (errors.Count > 0)
     return 1;
 }
 
-await command!.Run();
+await (helpCommand ?? command!).Run();
 
 return 0;
