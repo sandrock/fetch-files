@@ -24,4 +24,9 @@ public sealed class ShowUsage(FetchFilesContext context) : ICommand
         Console.WriteLine();
         return Task.CompletedTask;
     }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
 }

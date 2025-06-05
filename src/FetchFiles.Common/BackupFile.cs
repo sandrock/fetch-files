@@ -14,9 +14,16 @@ public sealed class BackupFile
     public string Location { get; }
     public string FileName { get; }
     public string? Id { get; }
+    public long? Length { get; set; }
+    public DateTime? LastWriteTimeUtc { get; set; }
 
     public override string ToString()
     {
         return $"{nameof(this.Unit)}: {this.Unit}, {nameof(this.Location)}: {this.Location}, {nameof(this.FileName)}: {this.FileName}, {nameof(this.Id)}: {this.Id}";
+    }
+
+    public string ToShortString()
+    {
+        return $"{nameof(this.Unit)}: {this.Unit}, {nameof(this.FileName)}: {this.FileName}";
     }
 }

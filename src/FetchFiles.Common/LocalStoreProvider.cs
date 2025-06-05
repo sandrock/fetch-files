@@ -12,6 +12,8 @@ public sealed class LocalStoreProvider : IStoreProvider
         this.store = store;
     }
 
+    public string Name { get => this.store.Name; }
+
     public Task Initialize()
     {
         if (this.store.Location == null)
@@ -58,16 +60,72 @@ public sealed class LocalStoreProvider : IStoreProvider
             unitLocation.Create();
         }
 
-        var basePath = Path.Combine(unitLocation.FullName, file.FileName);
+        var filePath = Path.Combine(unitLocation.FullName, file.FileName);
         Console.Out.WriteLine($"Store {this.store.Name} will keep file {file.ToString()}");
         var manifestString = JsonConvert.SerializeObject(file);
-        await File.WriteAllTextAsync(basePath + ".manifest", manifestString, Encoding.UTF8);
+        var manifestPath = filePath + ".manifest";
+        await File.WriteAllTextAsync(manifestPath, manifestString, Encoding.UTF8);
 
-        await using (var sourceStream = await source.GetFileStream(file))
-        await using (var destinationStream = new FileStream(basePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
+        await using (var destination = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
         {
-            destinationStream.SetLength(0L);
-            await sourceStream.CopyToAsync(destinationStream);
+            await source.FetchFile(file, destination);
         }
+
+        if (file.LastWriteTimeUtc != null)
+        {
+            File.SetAttributes(filePath, FileAttributes.ReadOnly);
+            File.SetLastWriteTimeUtc(filePath, file.LastWriteTimeUtc.Value);
+        }
+    }
+
+    public async Task<BackupFileState> GetFileInfo(string unit, string fileName)
+    {
+        BackupFile? file = new BackupFile(unit, null!, fileName, null);
+        var state = new BackupFileState(file);
+        
+        var unitLocation = new DirectoryInfo(Path.Combine(this.store.Location!, unit));
+        if (!unitLocation.Exists)
+        {
+            return state;
+        }
+
+        var basePath = Path.Combine(unitLocation.FullName, fileName);
+        var manifestPath = basePath + ".manifest";
+        if (!File.Exists(manifestPath))
+        {
+            return state;
+        }
+
+        var manifestString = await File.ReadAllTextAsync(manifestPath, Encoding.UTF8);
+        file = JsonConvert.DeserializeObject<BackupFile>(manifestString) ?? throw new InvalidOperationException("Manifest is invalid");
+
+        var info = new FileInfo(basePath);
+        if (info.Exists)
+        {
+            state = new BackupFileState(file);
+            state.Exists = true;
+            state.State = new BackupFile(unit, info.DirectoryName!, info.Name, null)
+            {
+                Length = info.Length,
+                LastWriteTimeUtc = info.LastWriteTimeUtc,
+            };
+        }
+        
+        return state;
+    }
+
+    public string ToShortString()
+    {
+        return $"Store: {this.Name}";
+    }
+
+    public override string ToString()
+    {
+        return $"Store: {this.Name}";
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 }

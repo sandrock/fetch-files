@@ -10,6 +10,7 @@ context.Commands.Add("unit-list-files", c => new UnitListFilesCommand(c));
 context.Commands.Add("sync", c => new OneShotRun(c));
 context.UnitTypes = new Dictionary<string, Func<Unit,IUnitProvider>>();
 context.UnitTypes.Add("Local", u => new LocalUnitProvider(u));
+context.UnitTypes.Add("SFTP", u => new SftpUnit(u));
 context.StoreTypes = new Dictionary<string, Func<Store,IStoreProvider>>();
 context.StoreTypes.Add("Local", u => new LocalStoreProvider(u));
 
@@ -82,5 +83,7 @@ if (errors.Count > 0)
 }
 
 await (helpCommand ?? command!).Run();
+
+await command!.DisposeAsync();
 
 return 0;

@@ -35,6 +35,28 @@ The `FileFormat` is an optional regular expression allowing to select the files 
 ```
 
 
+Unit type `SFTP`
+----------------------------
+
+This unit will search for files in a local directory.
+
+The `Location` entry is mandatory and must be a valid directory.
+
+The `FileFormat` is an optional regular expression allowing to select the files to fetch.
+
+```json
+{
+  "Type": "SFTP",
+  "Location": "/tmp/fetchfiles-test/myservice",
+  "FileFormat": "^myservice_(?<id>[0-9T-]+)_(?:.+)\\.zip$",
+  "Host": "myserver.lan",
+  "Port": 22,
+  "Username": "backup",
+  "Password": "qwerty"
+}
+```
+
+
 Store type `Local`
 ----------------------------
 
